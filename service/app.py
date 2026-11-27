@@ -275,12 +275,17 @@ async def submit(ws: WebSocket) -> None:
         pass
 
 
-app.mount("/assets", StaticFiles(directory=str(WEB_DIR), check_dir=False), name="assets")
+app.mount("/assets", StaticFiles(directory=str(WEB_DIR / "assets"), check_dir=False), name="assets")
 
 
 @app.get("/", include_in_schema=False)
 def index() -> FileResponse:
     return FileResponse(WEB_DIR / "index.html")
+
+
+@app.get("/config.js", include_in_schema=False)
+def runtime_config() -> FileResponse:
+    return FileResponse(WEB_DIR / "config.js", media_type="application/javascript")
 
 
 def main() -> None:

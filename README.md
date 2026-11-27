@@ -102,6 +102,7 @@ Environment:
 | `XPU_RUNNER_INNER_REPEATS` | `1` | solve calls per timed sample |
 | `XPU_RUNNER_TIMEOUT` | `40` | wall-clock budget per submission |
 | `XPU_RUNNER_HOST` / `XPU_RUNNER_PORT` | `0.0.0.0` / `8080` | bind address |
+| `XPU_RUNNER_PYTHON` | `python3` | interpreter with torch-XPU, fastapi, uvicorn |
 
 The service rejects submissions whose `challengeCode` differs from the first-party
 `challenge.py`, so a client cannot grade itself with a weakened reference.
