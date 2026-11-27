@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LeetGPU XPU</title>
+  <link rel="stylesheet" href="/assets/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">LeetGPU <span>XPU</span></div>
+    <div class="topbar-right">
+      <span id="status-dot" class="dot" title="service status"></span>
+      <span id="status-text" class="muted small">connecting…</span>
+      <button id="token-btn" class="ghost small" type="button">API token</button>
+    </div>
+  </header>
+
+  <div id="banner" class="banner hidden"></div>
+
+  <main class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-head">
+        <input id="search" type="search" placeholder="Search challenges" autocomplete="off" />
+        <div id="filters" class="filters">
+          <button data-diff="all" class="chip active" type="button">All</button>
+          <button data-diff="easy" class="chip" type="button">Easy</button>
+          <button data-diff="medium" class="chip" type="button">Medium</button>
+          <button data-diff="hard" class="chip" type="button">Hard</button>
+        </div>
+      </div>
+      <ul id="challenge-list" class="challenge-list"></ul>
+      <div class="history">
+        <div class="history-head">Recent runs</div>
+        <ul id="history-list" class="history-list"></ul>
+      </div>
+    </aside>
+
+    <section id="content" class="content">
+      <div class="empty">
+        <h1>Intel XPU playground</h1>
+        <p class="muted">Pick a challenge on the left, write SYCL, and run it on a real Arc GPU.</p>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="token-dialog">
+    <form id="token-form">
+      <h2>API token</h2>
+      <p id="token-message" class="muted small">
+        Paste the token configured on the runner service.
+      </p>
+      <input id="token-input" type="password" autocomplete="off" placeholder="token" />
+      <div class="dialog-actions">
+        <button type="button" id="token-cancel" class="ghost">Cancel</button>
+        <button type="submit" class="primary">Save token</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="/assets/app.js"></script>
+</body>
+</html>
