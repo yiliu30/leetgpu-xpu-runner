@@ -91,11 +91,13 @@ struct SpeculativeVerificationKernel {
 
 } // namespace
 
-extern "C" void solve(const int *draft_tokens, const float *draft_probs, const float *target_probs,
-                      const float *uniform_samples, int *output_tokens, int B, int T, int V) {
+extern "C" void solve(const int *draft_tokens, const float *draft_probs,
+                      const float *target_probs, const float *uniform_samples,
+                      int *output_tokens, int B, int T, int V) {
   sycl::queue q{sycl::property::queue::in_order()};
   q.parallel_for(sycl::range<1>(static_cast<std::size_t>(B)),
-                 SpeculativeVerificationKernel{draft_tokens, draft_probs, target_probs,
-                                               uniform_samples, output_tokens, T, V});
+                 SpeculativeVerificationKernel{draft_tokens, draft_probs,
+                                               target_probs, uniform_samples,
+                                               output_tokens, T, V});
   q.wait();
 }

@@ -19,16 +19,20 @@ struct LayerNormDxKernel {
     double sum_g = 0.0;
     double sum_g_xhat = 0.0;
     for (int col = 0; col < C; ++col) {
-      const double xhat = (static_cast<double>(x[base + col]) - row_mean) * scale;
-      const double g = static_cast<double>(dy[base + col]) * static_cast<double>(gamma[col]);
+      const double xhat =
+          (static_cast<double>(x[base + col]) - row_mean) * scale;
+      const double g =
+          static_cast<double>(dy[base + col]) * static_cast<double>(gamma[col]);
       sum_g += g;
       sum_g_xhat += g * xhat;
     }
     const double mean_g = sum_g / C;
     const double proj = sum_g_xhat / C;
     for (int col = 0; col < C; ++col) {
-      const double xhat = (static_cast<double>(x[base + col]) - row_mean) * scale;
-      const double g = static_cast<double>(dy[base + col]) * static_cast<double>(gamma[col]);
+      const double xhat =
+          (static_cast<double>(x[base + col]) - row_mean) * scale;
+      const double g =
+          static_cast<double>(dy[base + col]) * static_cast<double>(gamma[col]);
       dx[base + col] = static_cast<float>(scale * (g - mean_g - xhat * proj));
     }
   }
@@ -66,11 +70,14 @@ struct LayerNormParamGradKernel {
 
 } // namespace
 
-extern "C" void solve(const float *x, const float *gamma, const float *mean, const float *rstd,
-                      const float *dy, float *dx, float *dgamma, float *dbeta, int N, int C) {
+extern "C" void solve(const float *x, const float *gamma, const float *mean,
+                      const float *rstd, const float *dy, float *dx,
+                      float *dgamma, float *dbeta, int N, int C) {
   sycl::queue q{sycl::property::queue::in_order()};
-  q.parallel_for(sycl::range<1>(N), LayerNormDxKernel{x, gamma, mean, rstd, dy, dx, C});
-  q.parallel_for(sycl::range<1>(C),
-                 LayerNormParamGradKernel{x, mean, rstd, dy, dgamma, dbeta, N, C});
+  q.parallel_for(sycl::range<1>(N),
+                 LayerNormDxKernel{x, gamma, mean, rstd, dy, dx, C});
+  q.parallel_for(
+      sycl::range<1>(C),
+      LayerNormParamGradKernel{x, mean, rstd, dy, dgamma, dbeta, N, C});
   q.wait();
 }

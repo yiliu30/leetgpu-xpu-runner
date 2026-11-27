@@ -34,7 +34,8 @@ struct SharedPrefixAttentionKernel {
     for (int j = 0; j < nkeys; ++j) {
       const float *krow;
       if (j < prefix_len) {
-        krow = K_prefix + (static_cast<std::size_t>(h) * prefix_len + j) * head_dim;
+        krow = K_prefix +
+               (static_cast<std::size_t>(h) * prefix_len + j) * head_dim;
       } else {
         krow = K_suffix + bh_base +
                static_cast<std::size_t>(j - prefix_len) * head_dim;
@@ -78,13 +79,16 @@ struct SharedPrefixAttentionKernel {
 
 } // namespace
 
-extern "C" void solve(const float *Q, const float *K_prefix, const float *V_prefix,
-                      const float *K_suffix, const float *V_suffix, float *output, int batch_size,
-                      int num_heads, int prefix_len, int suffix_len, int head_dim) {
+extern "C" void solve(const float *Q, const float *K_prefix,
+                      const float *V_prefix, const float *K_suffix,
+                      const float *V_suffix, float *output, int batch_size,
+                      int num_heads, int prefix_len, int suffix_len,
+                      int head_dim) {
   sycl::queue q{sycl::property::queue::in_order()};
-  q.parallel_for(sycl::range<1>(static_cast<std::size_t>(batch_size) * num_heads * suffix_len *
-                                head_dim),
-                 SharedPrefixAttentionKernel{Q, K_prefix, V_prefix, K_suffix, V_suffix, output,
-                                             num_heads, prefix_len, suffix_len, head_dim});
+  q.parallel_for(sycl::range<1>(static_cast<std::size_t>(batch_size) *
+                                num_heads * suffix_len * head_dim),
+                 SharedPrefixAttentionKernel{Q, K_prefix, V_prefix, K_suffix,
+                                             V_suffix, output, num_heads,
+                                             prefix_len, suffix_len, head_dim});
   q.wait();
 }

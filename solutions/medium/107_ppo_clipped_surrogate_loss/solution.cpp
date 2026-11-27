@@ -18,8 +18,10 @@ struct PpoLossKernel {
     double local_sum = 0.0;
     for (int i = lid; i < total; i += kWorkGroupSize) {
       const float ratio = sycl::exp(log_pi[i] - log_pi_old[i]);
-      const float clipped = sycl::min(sycl::max(ratio, 1.0f - clip_eps), 1.0f + clip_eps);
-      const float surrogate = sycl::min(ratio * advantages[i], clipped * advantages[i]);
+      const float clipped =
+          sycl::min(sycl::max(ratio, 1.0f - clip_eps), 1.0f + clip_eps);
+      const float surrogate =
+          sycl::min(ratio * advantages[i], clipped * advantages[i]);
       local_sum += static_cast<double>(surrogate);
     }
     scratch[lid] = local_sum;
@@ -38,16 +40,17 @@ struct PpoLossKernel {
 
 } // namespace
 
-extern "C" void solve(const float *advantages, const float *log_pi, const float *log_pi_old,
-                      float *output, float clip_eps, int B, int S) {
+extern "C" void solve(const float *advantages, const float *log_pi,
+                      const float *log_pi_old, float *output, float clip_eps,
+                      int B, int S) {
   sycl::queue q{sycl::property::queue::in_order()};
   const int total = B * S;
   q.submit([&](sycl::handler &h) {
     sycl::local_accessor<double, 1> scratch(sycl::range<1>(kWorkGroupSize), h);
     h.parallel_for(sycl::nd_range<1>(sycl::range<1>(kWorkGroupSize),
                                      sycl::range<1>(kWorkGroupSize)),
-                   PpoLossKernel{scratch, advantages, log_pi, log_pi_old, output, clip_eps,
-                                 total});
+                   PpoLossKernel{scratch, advantages, log_pi, log_pi_old,
+                                 output, clip_eps, total});
   });
   q.wait();
 }

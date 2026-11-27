@@ -21,7 +21,8 @@ struct Count3DArrayElementKernel {
 
 } // namespace
 
-extern "C" void solve(const int *input, int *output, int N, int M, int K, int P) {
+extern "C" void solve(const int *input, int *output, int N, int M, int K,
+                      int P) {
   sycl::queue q{sycl::property::queue::in_order()};
   const std::size_t total =
       static_cast<std::size_t>(N) * M * static_cast<std::size_t>(K);

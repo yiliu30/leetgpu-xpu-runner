@@ -136,13 +136,11 @@ extern "C" void solve(const float *input, float *output, int N, int k) {
   q.single_task(InitSelectionKernel{state, k});
   for (int bit = 31; bit >= 0; --bit) {
     const unsigned int bitMask = 1u << bit;
-    const unsigned int highMask =
-        (bit == 31) ? 0u : (0xFFFFFFFFu << (bit + 1));
+    const unsigned int highMask = (bit == 31) ? 0u : (0xFFFFFFFFu << (bit + 1));
     q.submit([&](sycl::handler &h) {
       h.parallel_for(
-          sycl::nd_range<1>(
-              sycl::range<1>(numWorkGroups * WORK_GROUP_SIZE),
-              sycl::range<1>(WORK_GROUP_SIZE)),
+          sycl::nd_range<1>(sycl::range<1>(numWorkGroups * WORK_GROUP_SIZE),
+                            sycl::range<1>(WORK_GROUP_SIZE)),
           sycl::reduction(count, sycl::plus<unsigned long long>(),
                           sycl::property::reduction::initialize_to_identity()),
           CountSelectionBitsKernel{input, state, N, highMask, bitMask});

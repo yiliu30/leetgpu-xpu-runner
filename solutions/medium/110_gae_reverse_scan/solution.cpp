@@ -27,10 +27,10 @@ struct GaeScanKernel {
 
 } // namespace
 
-extern "C" void solve(const float *rewards, const float *values, float *advantages, float gamma,
-                      float lam, int B, int S) {
+extern "C" void solve(const float *rewards, const float *values,
+                      float *advantages, float gamma, float lam, int B, int S) {
   sycl::queue q{sycl::property::queue::in_order()};
-  q.parallel_for(sycl::range<1>(B), GaeScanKernel{rewards, values, advantages, gamma, gamma * lam,
-                                                   S});
+  q.parallel_for(sycl::range<1>(B), GaeScanKernel{rewards, values, advantages,
+                                                  gamma, gamma * lam, S});
   q.wait();
 }

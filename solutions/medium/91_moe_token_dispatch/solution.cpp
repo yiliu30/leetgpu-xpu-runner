@@ -32,11 +32,13 @@ struct MoeDispatchKernel {
 
 } // namespace
 
-extern "C" void solve(const float *x, const int *expert_idx, float *dispatched_x, int *token_counts,
-                      int T, int D, int E, int capacity) {
+extern "C" void solve(const float *x, const int *expert_idx,
+                      float *dispatched_x, int *token_counts, int T, int D,
+                      int E, int capacity) {
   sycl::queue q{sycl::property::queue::in_order()};
   q.fill(dispatched_x, 0.0f, static_cast<std::size_t>(E) * capacity * D);
   q.parallel_for(sycl::range<1>(static_cast<std::size_t>(E) * D),
-                 MoeDispatchKernel{x, expert_idx, dispatched_x, token_counts, T, D, capacity});
+                 MoeDispatchKernel{x, expert_idx, dispatched_x, token_counts, T,
+                                   D, capacity});
   q.wait();
 }

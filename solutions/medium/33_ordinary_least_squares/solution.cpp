@@ -70,11 +70,10 @@ struct OlsKernel {
 
 } // namespace
 
-extern "C" void solve(const float *X, const float *y, float *beta, int n_samples,
-                      int n_features) {
+extern "C" void solve(const float *X, const float *y, float *beta,
+                      int n_samples, int n_features) {
   sycl::queue q{sycl::property::queue::in_order()};
-  const int scratchSize =
-      2 * n_features * n_features + 3 * n_features;
+  const int scratchSize = 2 * n_features * n_features + 3 * n_features;
   float *work = sycl::malloc_device<float>(scratchSize, q);
   q.single_task(OlsKernel{X, y, beta, work, n_samples, n_features});
   q.wait();

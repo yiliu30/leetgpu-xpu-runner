@@ -22,7 +22,8 @@ struct ValueClippingKernel {
 
 } // namespace
 
-extern "C" void solve(const float *input, float *output, float lo, float hi, int N) {
+extern "C" void solve(const float *input, float *output, float lo, float hi,
+                      int N) {
   if (N <= 0) {
     return;
   }

@@ -16,8 +16,8 @@ struct RopeEmbeddingKernel {
     const int half = D / 2;
     const int rowOffset = row * D;
     const int rotatedCol = (col < half) ? col + half : col - half;
-    const float rotated = (col < half) ? -Q[rowOffset + rotatedCol]
-                                       : Q[rowOffset + rotatedCol];
+    const float rotated =
+        (col < half) ? -Q[rowOffset + rotatedCol] : Q[rowOffset + rotatedCol];
     output[index] = Q[index] * cosine[index] + rotated * sine[index];
   }
 };
@@ -29,7 +29,8 @@ extern "C" void solve(const float *Q, const float *cosine, const float *sine,
   sycl::queue q{sycl::property::queue::in_order()};
   const int total = M * D;
   if (total > 0) {
-    q.parallel_for(sycl::range<1>(total), RopeEmbeddingKernel{Q, cosine, sine, output, D});
+    q.parallel_for(sycl::range<1>(total),
+                   RopeEmbeddingKernel{Q, cosine, sine, output, D});
   }
   q.wait();
 }

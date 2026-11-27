@@ -22,8 +22,8 @@ struct CrossEntropyRowsKernel {
     for (int col = 0; col < C; ++col) {
       expSum += sycl::exp(rowLogits[col] - maxLogit);
     }
-    rowLosses[row] = (maxLogit + sycl::log(expSum)) -
-                     rowLogits[trueLabels[row]];
+    rowLosses[row] =
+        (maxLogit + sycl::log(expSum)) - rowLogits[trueLabels[row]];
   }
 };
 
@@ -61,9 +61,8 @@ extern "C" void solve(const float *logits, const int *true_labels, float *loss,
                  CrossEntropyRowsKernel{logits, true_labels, rowLosses, N, C});
   q.submit([&](sycl::handler &h) {
     h.parallel_for(
-        sycl::nd_range<1>(
-            sycl::range<1>(numWorkGroups * WORK_GROUP_SIZE),
-            sycl::range<1>(WORK_GROUP_SIZE)),
+        sycl::nd_range<1>(sycl::range<1>(numWorkGroups * WORK_GROUP_SIZE),
+                          sycl::range<1>(WORK_GROUP_SIZE)),
         sycl::reduction(total, sycl::plus<double>(),
                         sycl::property::reduction::initialize_to_identity()),
         CrossEntropySumKernel{rowLosses, N});

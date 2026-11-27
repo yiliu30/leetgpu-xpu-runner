@@ -27,7 +27,8 @@ extern "C" void solve(const float *input, float *output, int rows, int cols) {
   sycl::queue q{sycl::property::queue::in_order()};
   const int total = rows * cols;
   if (total > 0) {
-    q.parallel_for(sycl::range<1>(total), JacobiStencilKernel{input, output, rows, cols});
+    q.parallel_for(sycl::range<1>(total),
+                   JacobiStencilKernel{input, output, rows, cols});
   }
   q.wait();
 }

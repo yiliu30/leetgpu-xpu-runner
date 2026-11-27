@@ -19,8 +19,10 @@ struct Int8KvCacheAttentionKernel {
     const int h = static_cast<int>(idx / static_cast<std::size_t>(head_dim));
     const float *qrow = Q + static_cast<std::size_t>(h) * head_dim;
     const float scale = 1.0f / sycl::sqrt(static_cast<float>(head_dim));
-    const int8_t *khead = K_int8 + static_cast<std::size_t>(h) * seq_len * head_dim;
-    const int8_t *vhead = V_int8 + static_cast<std::size_t>(h) * seq_len * head_dim;
+    const int8_t *khead =
+        K_int8 + static_cast<std::size_t>(h) * seq_len * head_dim;
+    const int8_t *vhead =
+        V_int8 + static_cast<std::size_t>(h) * seq_len * head_dim;
     const float *kscale = k_scale + static_cast<std::size_t>(h) * seq_len;
     const float *vscale = v_scale + static_cast<std::size_t>(h) * seq_len;
 
@@ -55,12 +57,13 @@ struct Int8KvCacheAttentionKernel {
 
 } // namespace
 
-extern "C" void solve(const float *Q, const int8_t *K_int8, const int8_t *V_int8,
-                      const float *k_scale, const float *v_scale, float *output, int num_heads,
+extern "C" void solve(const float *Q, const int8_t *K_int8,
+                      const int8_t *V_int8, const float *k_scale,
+                      const float *v_scale, float *output, int num_heads,
                       int seq_len, int head_dim) {
   sycl::queue q{sycl::property::queue::in_order()};
   q.parallel_for(sycl::range<1>(static_cast<std::size_t>(num_heads) * head_dim),
-                 Int8KvCacheAttentionKernel{Q, K_int8, V_int8, k_scale, v_scale, output, seq_len,
-                                            head_dim});
+                 Int8KvCacheAttentionKernel{Q, K_int8, V_int8, k_scale, v_scale,
+                                            output, seq_len, head_dim});
   q.wait();
 }

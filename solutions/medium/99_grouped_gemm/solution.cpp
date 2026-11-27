@@ -40,8 +40,8 @@ struct GroupedGemmKernel {
 
 } // namespace
 
-extern "C" void solve(const float *A, const float *B, const int *group_offsets, float *C, int G,
-                      int M_total, int K, int N) {
+extern "C" void solve(const float *A, const float *B, const int *group_offsets,
+                      float *C, int G, int M_total, int K, int N) {
   sycl::queue q{sycl::property::queue::in_order()};
   q.parallel_for(sycl::range<1>(static_cast<std::size_t>(M_total) * N),
                  GroupedGemmKernel{A, B, group_offsets, C, G, K, N});

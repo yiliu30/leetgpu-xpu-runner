@@ -28,8 +28,10 @@ struct SsmSelectiveScanKernel {
 
     const float *Arow = A + static_cast<std::size_t>(d) * d_state;
     for (int t = 0; t < seq_len; ++t) {
-      const std::size_t bd = (static_cast<std::size_t>(b) * seq_len + t) * d_model + d;
-      const std::size_t bs = (static_cast<std::size_t>(b) * seq_len + t) * d_state;
+      const std::size_t bd =
+          (static_cast<std::size_t>(b) * seq_len + t) * d_model + d;
+      const std::size_t bs =
+          (static_cast<std::size_t>(b) * seq_len + t) * d_state;
       const float dt = delta[bd];
       const float ut = u[bd];
 
@@ -47,11 +49,13 @@ struct SsmSelectiveScanKernel {
 
 } // namespace
 
-extern "C" void solve(const float *u, const float *delta, const float *A, const float *B,
-                      const float *C, const float *skip, float *y, int batch, int seq_len,
-                      int d_model, int d_state) {
+extern "C" void solve(const float *u, const float *delta, const float *A,
+                      const float *B, const float *C, const float *skip,
+                      float *y, int batch, int seq_len, int d_model,
+                      int d_state) {
   sycl::queue q{sycl::property::queue::in_order()};
   q.parallel_for(sycl::range<1>(static_cast<std::size_t>(batch) * d_model),
-                 SsmSelectiveScanKernel{u, delta, A, B, C, skip, y, seq_len, d_model, d_state});
+                 SsmSelectiveScanKernel{u, delta, A, B, C, skip, y, seq_len,
+                                        d_model, d_state});
   q.wait();
 }

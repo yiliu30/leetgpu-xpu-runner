@@ -22,10 +22,12 @@ struct SegmentedPrefixSumKernel {
 
 } // namespace
 
-extern "C" void solve(const float *values, const int *flags, float *output, int N) {
+extern "C" void solve(const float *values, const int *flags, float *output,
+                      int N) {
   sycl::queue q{sycl::property::queue::in_order()};
   if (N > 0) {
-    q.parallel_for(sycl::range<1>(1), SegmentedPrefixSumKernel{values, flags, output, N});
+    q.parallel_for(sycl::range<1>(1),
+                   SegmentedPrefixSumKernel{values, flags, output, N});
   }
   q.wait();
 }

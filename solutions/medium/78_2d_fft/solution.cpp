@@ -10,7 +10,8 @@ struct FftTableKernel {
 
   void operator()(sycl::id<1> globalId) const {
     const int i = static_cast<int>(globalId[0]);
-    const double angle = -2.0 * PI * static_cast<double>(i) / static_cast<double>(size);
+    const double angle =
+        -2.0 * PI * static_cast<double>(i) / static_cast<double>(size);
     table[2 * i] = static_cast<float>(sycl::cos(angle));
     table[2 * i + 1] = static_cast<float>(sycl::sin(angle));
   }
@@ -88,8 +89,10 @@ extern "C" void solve(const float *signal, float *spectrum, int M, int N) {
 
   q.parallel_for(sycl::range<1>(M), FftTableKernel{tableM, M});
   q.parallel_for(sycl::range<1>(N), FftTableKernel{tableN, N});
-  q.parallel_for(sycl::range<1>(total), FftRowsKernel{signal, scratch, tableN, M, N});
-  q.parallel_for(sycl::range<1>(total), FftColsKernel{scratch, spectrum, tableM, M, N});
+  q.parallel_for(sycl::range<1>(total),
+                 FftRowsKernel{signal, scratch, tableN, M, N});
+  q.parallel_for(sycl::range<1>(total),
+                 FftColsKernel{scratch, spectrum, tableM, M, N});
   q.wait();
 
   sycl::free(scratch, q);

@@ -35,12 +35,14 @@ struct RmsDxKernel {
     double proj = 0.0;
     for (int col = 0; col < C; ++col) {
       const double xhat = static_cast<double>(x[base + col]) * scale;
-      proj += static_cast<double>(dy[base + col]) * static_cast<double>(weight[col]) * xhat;
+      proj += static_cast<double>(dy[base + col]) *
+              static_cast<double>(weight[col]) * xhat;
     }
     proj /= C;
     for (int col = 0; col < C; ++col) {
       const double xhat = static_cast<double>(x[base + col]) * scale;
-      const double g = static_cast<double>(dy[base + col]) * static_cast<double>(weight[col]);
+      const double g = static_cast<double>(dy[base + col]) *
+                       static_cast<double>(weight[col]);
       dx[base + col] = static_cast<float>(scale * (g - xhat * proj));
     }
   }
@@ -70,13 +72,14 @@ struct RmsDweightKernel {
 
 } // namespace
 
-extern "C" void solve(const float *x, const float *weight, const float *dy, float *dx,
-                      float *dweight, int N, int C, float eps) {
+extern "C" void solve(const float *x, const float *weight, const float *dy,
+                      float *dx, float *dweight, int N, int C, float eps) {
   sycl::queue q{sycl::property::queue::in_order()};
   float *rstd = sycl::malloc_device<float>(N, q);
   q.parallel_for(sycl::range<1>(N), RmsRstdKernel{x, rstd, C, eps});
   q.parallel_for(sycl::range<1>(N), RmsDxKernel{x, weight, dy, rstd, dx, C});
-  q.parallel_for(sycl::range<1>(C), RmsDweightKernel{x, dy, rstd, dweight, N, C});
+  q.parallel_for(sycl::range<1>(C),
+                 RmsDweightKernel{x, dy, rstd, dweight, N, C});
   q.wait();
   sycl::free(rstd, q);
 }

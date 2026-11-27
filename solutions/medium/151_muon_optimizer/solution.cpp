@@ -48,7 +48,8 @@ struct MuonInitKernel {
     const int xCol = linear - xRow * C;
     const int sourceRow = transposed ? xCol : xRow;
     const int sourceCol = transposed ? xRow : xCol;
-    const std::size_t source = static_cast<std::size_t>(sourceRow) * N + sourceCol;
+    const std::size_t source =
+        static_cast<std::size_t>(sourceRow) * N + sourceCol;
     const float value = momentum * Buf[source] + G[source];
     X[linear] = value / (static_cast<float>(*norm) + 1e-7f);
   }
@@ -138,8 +139,9 @@ struct MuonMatMulKernel {
     for (int k0 = 0; k0 < R; k0 += TILE) {
       tileLeft[localRow][localCol] =
           (row < R && k0 + localCol < R) ? left[row * R + k0 + localCol] : 0.0f;
-      tileRight[localRow][localCol] =
-          (col < C && k0 + localRow < R) ? right[(k0 + localRow) * C + col] : 0.0f;
+      tileRight[localRow][localCol] = (col < C && k0 + localRow < R)
+                                          ? right[(k0 + localRow) * C + col]
+                                          : 0.0f;
       item.barrier(sycl::access::fence_space::local_space);
       for (int t = 0; t < TILE; ++t) {
         acc += tileLeft[localRow][t] * tileRight[t][localCol];
@@ -207,9 +209,8 @@ extern "C" void solve(const float *G, const float *Buf, float *output, int M,
       (total + REDUCTION_WORK_GROUP - 1) / REDUCTION_WORK_GROUP;
   q.submit([&](sycl::handler &h) {
     h.parallel_for(
-        sycl::nd_range<1>(
-            sycl::range<1>(normGroups * REDUCTION_WORK_GROUP),
-            sycl::range<1>(REDUCTION_WORK_GROUP)),
+        sycl::nd_range<1>(sycl::range<1>(normGroups * REDUCTION_WORK_GROUP),
+                          sycl::range<1>(REDUCTION_WORK_GROUP)),
         sycl::reduction(norm, sycl::plus<double>(),
                         sycl::property::reduction::initialize_to_identity()),
         MuonNormKernel{G, Buf, total, momentum});
@@ -233,10 +234,9 @@ extern "C" void solve(const float *G, const float *Buf, float *output, int M,
     q.submit([&](sycl::handler &h) {
       sycl::local_accessor<float, 2> tileLeft(sycl::range<2>(TILE, TILE), h);
       sycl::local_accessor<float, 2> tileRight(sycl::range<2>(TILE, TILE), h);
-      h.parallel_for(
-          sycl::nd_range<2>(gramGlobal, localRange),
-          MuonSquareScaleKernel{tileLeft, tileRight, A, B, R, -4.7750f,
-                                2.0315f});
+      h.parallel_for(sycl::nd_range<2>(gramGlobal, localRange),
+                     MuonSquareScaleKernel{tileLeft, tileRight, A, B, R,
+                                           -4.7750f, 2.0315f});
     });
     q.submit([&](sycl::handler &h) {
       sycl::local_accessor<float, 2> tileLeft(sycl::range<2>(TILE, TILE), h);

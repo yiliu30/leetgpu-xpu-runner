@@ -65,8 +65,7 @@ extern "C" void solve(const float *input, float *output, int N, int P) {
   sycl::range<1> globalSize(numWorkGroups * WORK_GROUP_SIZE);
 
   if (P == 1) {
-    q.parallel_for(globalSize,
-                   MatrixPowerCopyKernel{input, output, total});
+    q.parallel_for(globalSize, MatrixPowerCopyKernel{input, output, total});
     q.wait();
     return;
   }
@@ -76,8 +75,7 @@ extern "C" void solve(const float *input, float *output, int N, int P) {
   float *result = sycl::malloc_device<float>(total, q);
   float *resultTmp = sycl::malloc_device<float>(total, q);
 
-  q.parallel_for(globalSize,
-                 MatrixPowerInitKernel{input, base, result, N});
+  q.parallel_for(globalSize, MatrixPowerInitKernel{input, base, result, N});
 
   int exponent = P;
   while (exponent > 0) {

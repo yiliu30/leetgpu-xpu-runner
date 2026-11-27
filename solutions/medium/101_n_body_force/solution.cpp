@@ -36,8 +36,10 @@ struct NBodyForceKernel {
 
 } // namespace
 
-extern "C" void solve(const float *positions, const float *masses, float *forces, int N) {
+extern "C" void solve(const float *positions, const float *masses,
+                      float *forces, int N) {
   sycl::queue q{sycl::property::queue::in_order()};
-  q.parallel_for(sycl::range<1>(N), NBodyForceKernel{positions, masses, forces, N});
+  q.parallel_for(sycl::range<1>(N),
+                 NBodyForceKernel{positions, masses, forces, N});
   q.wait();
 }

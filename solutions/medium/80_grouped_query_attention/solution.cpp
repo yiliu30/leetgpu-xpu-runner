@@ -52,8 +52,9 @@ struct GroupedQueryAttentionKernel {
 
 } // namespace
 
-extern "C" void solve(const float *Q, const float *K, const float *V, float *output,
-                      int num_q_heads, int num_kv_heads, int seq_len, int head_dim) {
+extern "C" void solve(const float *Q, const float *K, const float *V,
+                      float *output, int num_q_heads, int num_kv_heads,
+                      int seq_len, int head_dim) {
   sycl::queue q{sycl::property::queue::in_order()};
   if (num_q_heads <= 0 || num_kv_heads <= 0 || seq_len <= 0 || head_dim <= 0) {
     return;
@@ -64,8 +65,8 @@ extern "C" void solve(const float *Q, const float *K, const float *V, float *out
   q.submit([&](sycl::handler &h) {
     sycl::local_accessor<float, 1> scores(sycl::range<1>(seq_len), h);
     h.parallel_for(sycl::nd_range<1>(sycl::range<1>(tasks), sycl::range<1>(1)),
-                   GroupedQueryAttentionKernel{scores, Q, K, V, output, groups, seq_len,
-                                               head_dim, scale});
+                   GroupedQueryAttentionKernel{scores, Q, K, V, output, groups,
+                                               seq_len, head_dim, scale});
   });
   q.wait();
 }

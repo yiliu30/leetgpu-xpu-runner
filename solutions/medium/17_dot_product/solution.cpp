@@ -34,9 +34,8 @@ extern "C" void solve(const float *A, const float *B, float *result, int N) {
   if (numWorkGroups > 0) {
     q.submit([&](sycl::handler &h) {
       h.parallel_for(
-          sycl::nd_range<1>(
-              sycl::range<1>(numWorkGroups * WORK_GROUP_SIZE),
-              sycl::range<1>(WORK_GROUP_SIZE)),
+          sycl::nd_range<1>(sycl::range<1>(numWorkGroups * WORK_GROUP_SIZE),
+                            sycl::range<1>(WORK_GROUP_SIZE)),
           sycl::reduction(sum, sycl::plus<double>(),
                           sycl::property::reduction::initialize_to_identity()),
           DotProductKernel{A, B, N});

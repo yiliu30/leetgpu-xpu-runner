@@ -55,10 +55,12 @@ struct GrpoGroupKernel {
     double local_loss = 0.0;
     for (long k = lid; k < total; k += kWorkGroupSize) {
       const int g = static_cast<int>(k / S);
-      const double advantage = (static_cast<double>(reward_row[g]) - mean) / (stddev + 1.0e-8);
+      const double advantage =
+          (static_cast<double>(reward_row[g]) - mean) / (stddev + 1.0e-8);
       const float diff = log_pi[base + k] - log_pi_old[base + k];
       const float ratio = sycl::exp(diff);
-      const float clipped = sycl::min(sycl::max(ratio, 1.0f - clip_eps), 1.0f + clip_eps);
+      const float clipped =
+          sycl::min(sycl::max(ratio, 1.0f - clip_eps), 1.0f + clip_eps);
       const double surrogate = static_cast<double>(
           sycl::min(ratio * static_cast<float>(advantage),
                     clipped * static_cast<float>(advantage)));
@@ -110,28 +112,27 @@ struct GrpoFinalizeKernel {
 
 } // namespace
 
-extern "C" void solve(const float *rewards, const float *log_pi, const float *log_pi_old,
-                      const float *log_ref, float *output, float clip_eps, float beta, int B, int G,
+extern "C" void solve(const float *rewards, const float *log_pi,
+                      const float *log_pi_old, const float *log_ref,
+                      float *output, float clip_eps, float beta, int B, int G,
                       int S) {
   sycl::queue q{sycl::property::queue::in_order()};
   double *partial = sycl::malloc_device<double>(B, q);
 
   q.submit([&](sycl::handler &h) {
     sycl::local_accessor<double, 1> scratch(sycl::range<1>(kWorkGroupSize), h);
-    h.parallel_for(
-        sycl::nd_range<1>(sycl::range<1>(B * kWorkGroupSize),
-                          sycl::range<1>(kWorkGroupSize)),
-        GrpoGroupKernel{scratch, rewards, log_pi, log_pi_old, log_ref, partial, clip_eps, beta,
-                        G, S});
+    h.parallel_for(sycl::nd_range<1>(sycl::range<1>(B * kWorkGroupSize),
+                                     sycl::range<1>(kWorkGroupSize)),
+                   GrpoGroupKernel{scratch, rewards, log_pi, log_pi_old,
+                                   log_ref, partial, clip_eps, beta, G, S});
   });
 
   q.submit([&](sycl::handler &h) {
     sycl::local_accessor<double, 1> scratch(sycl::range<1>(kWorkGroupSize), h);
-    h.parallel_for(
-        sycl::nd_range<1>(sycl::range<1>(kWorkGroupSize),
-                          sycl::range<1>(kWorkGroupSize)),
-        GrpoFinalizeKernel{scratch, partial, output, B,
-                           static_cast<double>(B) * G * S});
+    h.parallel_for(sycl::nd_range<1>(sycl::range<1>(kWorkGroupSize),
+                                     sycl::range<1>(kWorkGroupSize)),
+                   GrpoFinalizeKernel{scratch, partial, output, B,
+                                      static_cast<double>(B) * G * S});
   });
   q.wait();
   sycl::free(partial, q);

@@ -23,13 +23,14 @@ struct SparseDenseMatMulKernel {
 
 } // namespace
 
-extern "C" void solve(const float *A, const float *B, float *C, int M, int N, int K,
-                      int nnz) {
+extern "C" void solve(const float *A, const float *B, float *C, int M, int N,
+                      int K, int nnz) {
   (void)nnz;
   sycl::queue q{sycl::property::queue::in_order()};
   const int total = M * K;
   if (total > 0) {
-    q.parallel_for(sycl::range<1>(total), SparseDenseMatMulKernel{A, B, C, N, K});
+    q.parallel_for(sycl::range<1>(total),
+                   SparseDenseMatMulKernel{A, B, C, N, K});
   }
   q.wait();
 }

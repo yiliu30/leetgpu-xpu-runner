@@ -50,7 +50,8 @@ struct ConnectedComponentsKernel {
 
 } // namespace
 
-extern "C" void solve(const int *src, const int *dst, int *labels, int N, int M) {
+extern "C" void solve(const int *src, const int *dst, int *labels, int N,
+                      int M) {
   sycl::queue q{sycl::property::queue::in_order()};
   if (N <= 0) {
     return;

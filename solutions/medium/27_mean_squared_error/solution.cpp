@@ -29,17 +29,16 @@ struct MseFinalizeKernel {
 
 } // namespace
 
-extern "C" void solve(const float *predictions, const float *targets, float *mse,
-                      int N) {
+extern "C" void solve(const float *predictions, const float *targets,
+                      float *mse, int N) {
   sycl::queue q{sycl::property::queue::in_order()};
   double *sum = sycl::malloc_device<double>(1, q);
   const int numWorkGroups = (N + WORK_GROUP_SIZE - 1) / WORK_GROUP_SIZE;
   if (numWorkGroups > 0) {
     q.submit([&](sycl::handler &h) {
       h.parallel_for(
-          sycl::nd_range<1>(
-              sycl::range<1>(numWorkGroups * WORK_GROUP_SIZE),
-              sycl::range<1>(WORK_GROUP_SIZE)),
+          sycl::nd_range<1>(sycl::range<1>(numWorkGroups * WORK_GROUP_SIZE),
+                            sycl::range<1>(WORK_GROUP_SIZE)),
           sycl::reduction(sum, sycl::plus<double>(),
                           sycl::property::reduction::initialize_to_identity()),
           MseKernel{predictions, targets, N});

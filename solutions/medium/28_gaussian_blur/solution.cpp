@@ -42,8 +42,9 @@ extern "C" void solve(const float *input, const float *kernel, float *output,
                       int input_rows, int input_cols, int kernel_rows,
                       int kernel_cols) {
   sycl::queue q{sycl::property::queue::in_order()};
-  q.parallel_for(sycl::range<1>(static_cast<std::size_t>(input_rows) * input_cols),
-                 GaussianBlurKernel{input, kernel, output, input_rows, input_cols,
-                                    kernel_rows, kernel_cols});
+  q.parallel_for(
+      sycl::range<1>(static_cast<std::size_t>(input_rows) * input_cols),
+      GaussianBlurKernel{input, kernel, output, input_rows, input_cols,
+                         kernel_rows, kernel_cols});
   q.wait();
 }

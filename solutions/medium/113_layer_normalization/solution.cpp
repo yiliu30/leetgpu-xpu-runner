@@ -47,7 +47,8 @@ struct LayerNormKernel {
       item.barrier(sycl::access::fence_space::local_space);
     }
     const double inv_std =
-        1.0 / sycl::sqrt(scratch[0] / static_cast<double>(C) + static_cast<double>(eps));
+        1.0 / sycl::sqrt(scratch[0] / static_cast<double>(C) +
+                         static_cast<double>(eps));
 
     for (int c = lid; c < C; c += kWorkGroupSize) {
       const double normalized = (static_cast<double>(src[c]) - mean) * inv_std;
@@ -59,8 +60,9 @@ struct LayerNormKernel {
 
 } // namespace
 
-extern "C" void solve(const float *input, const float *weight, const float *bias, float *output,
-                      int N, int C, float eps) {
+extern "C" void solve(const float *input, const float *weight,
+                      const float *bias, float *output, int N, int C,
+                      float eps) {
   sycl::queue q{sycl::property::queue::in_order()};
   q.submit([&](sycl::handler &h) {
     sycl::local_accessor<double, 1> scratch(sycl::range<1>(kWorkGroupSize), h);

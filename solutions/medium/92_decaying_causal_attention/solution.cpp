@@ -34,10 +34,11 @@ struct DecayingCausalAttentionKernel {
 
 } // namespace
 
-extern "C" void solve(const float *Q, const float *K, const float *V, float *output, int seq_len,
-                      int d_model, float gamma) {
+extern "C" void solve(const float *Q, const float *K, const float *V,
+                      float *output, int seq_len, int d_model, float gamma) {
   sycl::queue q{sycl::property::queue::in_order()};
-  q.parallel_for(sycl::range<1>(static_cast<std::size_t>(seq_len) * d_model),
-                 DecayingCausalAttentionKernel{Q, K, V, output, seq_len, d_model, gamma});
+  q.parallel_for(
+      sycl::range<1>(static_cast<std::size_t>(seq_len) * d_model),
+      DecayingCausalAttentionKernel{Q, K, V, output, seq_len, d_model, gamma});
   q.wait();
 }

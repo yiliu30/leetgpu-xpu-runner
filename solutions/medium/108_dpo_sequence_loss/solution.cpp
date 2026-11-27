@@ -47,15 +47,17 @@ struct DpoLossKernel {
 } // namespace
 
 extern "C" void solve(const float *chosen_logps, const float *rejected_logps,
-                      const float *chosen_ref_logps, const float *rejected_ref_logps, float *output,
+                      const float *chosen_ref_logps,
+                      const float *rejected_ref_logps, float *output,
                       float beta, int B) {
   sycl::queue q{sycl::property::queue::in_order()};
   q.submit([&](sycl::handler &h) {
     sycl::local_accessor<double, 1> scratch(sycl::range<1>(kWorkGroupSize), h);
     h.parallel_for(sycl::nd_range<1>(sycl::range<1>(kWorkGroupSize),
                                      sycl::range<1>(kWorkGroupSize)),
-                   DpoLossKernel{scratch, chosen_logps, rejected_logps, chosen_ref_logps,
-                                 rejected_ref_logps, output, beta, B});
+                   DpoLossKernel{scratch, chosen_logps, rejected_logps,
+                                 chosen_ref_logps, rejected_ref_logps, output,
+                                 beta, B});
   });
   q.wait();
 }

@@ -13,7 +13,8 @@ struct HistogramKernel {
     if (i < N) {
       const int bin = input[i];
       if (bin >= 0 && bin < num_bins) {
-        sycl::atomic_ref<int, sycl::memory_order::relaxed, sycl::memory_scope::device,
+        sycl::atomic_ref<int, sycl::memory_order::relaxed,
+                         sycl::memory_scope::device,
                          sycl::access::address_space::global_space>
             count(histogram[bin]);
         count.fetch_add(1);
@@ -27,6 +28,7 @@ struct HistogramKernel {
 extern "C" void solve(const int *input, int *histogram, int N, int num_bins) {
   sycl::queue q{sycl::property::queue::in_order()};
   q.memset(histogram, 0, static_cast<size_t>(num_bins) * sizeof(int));
-  q.parallel_for(sycl::range<1>(N), HistogramKernel{input, histogram, N, num_bins});
+  q.parallel_for(sycl::range<1>(N),
+                 HistogramKernel{input, histogram, N, num_bins});
   q.wait();
 }

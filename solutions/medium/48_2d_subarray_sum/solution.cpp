@@ -21,9 +21,8 @@ struct SubarraySum2DKernel {
     }
     const std::size_t row = index / cols;
     const std::size_t col = index % cols;
-    const std::size_t inputIndex =
-        (static_cast<std::size_t>(sRow) + row) * m +
-        static_cast<std::size_t>(sCol) + col;
+    const std::size_t inputIndex = (static_cast<std::size_t>(sRow) + row) * m +
+                                   static_cast<std::size_t>(sCol) + col;
     sumReducer.combine(input[inputIndex]);
   }
 };

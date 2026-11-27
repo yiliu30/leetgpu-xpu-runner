@@ -26,7 +26,8 @@ struct MinPSamplingKernel {
     item.barrier(sycl::access::fence_space::local_space);
     for (int stride = kWorkGroupSize / 2; stride > 0; stride >>= 1) {
       if (lid < stride) {
-        max_scratch[lid] = sycl::max(max_scratch[lid], max_scratch[lid + stride]);
+        max_scratch[lid] =
+            sycl::max(max_scratch[lid], max_scratch[lid + stride]);
       }
       item.barrier(sycl::access::fence_space::local_space);
     }
@@ -51,18 +52,23 @@ struct MinPSamplingKernel {
 
     for (int i = lid; i < V; i += kWorkGroupSize) {
       const float e = sycl::exp(logit_row[i] - row_max);
-      prob_row[i] = (e >= min_p) ? static_cast<float>(static_cast<double>(e) / denom) : 0.0f;
+      prob_row[i] = (e >= min_p)
+                        ? static_cast<float>(static_cast<double>(e) / denom)
+                        : 0.0f;
     }
   }
 };
 
 } // namespace
 
-extern "C" void solve(const float *logits, float *probs, float min_p, int B, int V) {
+extern "C" void solve(const float *logits, float *probs, float min_p, int B,
+                      int V) {
   sycl::queue q{sycl::property::queue::in_order()};
   q.submit([&](sycl::handler &h) {
-    sycl::local_accessor<float, 1> max_scratch(sycl::range<1>(kWorkGroupSize), h);
-    sycl::local_accessor<double, 1> sum_scratch(sycl::range<1>(kWorkGroupSize), h);
+    sycl::local_accessor<float, 1> max_scratch(sycl::range<1>(kWorkGroupSize),
+                                               h);
+    sycl::local_accessor<double, 1> sum_scratch(sycl::range<1>(kWorkGroupSize),
+                                                h);
     h.parallel_for(
         sycl::nd_range<1>(sycl::range<1>(B * kWorkGroupSize),
                           sycl::range<1>(kWorkGroupSize)),

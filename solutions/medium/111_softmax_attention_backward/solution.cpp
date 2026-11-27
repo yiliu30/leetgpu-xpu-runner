@@ -38,7 +38,8 @@ struct AttentionBackwardRowsKernel {
     item.barrier(sycl::access::fence_space::local_space);
     for (int stride = kWorkGroupSize / 2; stride > 0; stride >>= 1) {
       if (lid < stride) {
-        max_scratch[lid] = sycl::max(max_scratch[lid], max_scratch[lid + stride]);
+        max_scratch[lid] =
+            sycl::max(max_scratch[lid], max_scratch[lid + stride]);
       }
       item.barrier(sycl::access::fence_space::local_space);
     }
@@ -92,8 +93,9 @@ struct AttentionBackwardRowsKernel {
       for (int c = 0; c < d; ++c) {
         dp += do_row[c] * v_row[c];
       }
-      ds_row[j] = static_cast<float>(static_cast<double>(p_row[j]) *
-                                     (static_cast<double>(dp) - row_dot) * scale);
+      ds_row[j] =
+          static_cast<float>(static_cast<double>(p_row[j]) *
+                             (static_cast<double>(dp) - row_dot) * scale);
     }
   }
 };
@@ -148,21 +150,23 @@ struct AttentionDkDvKernel {
 
 } // namespace
 
-extern "C" void solve(const float *Q, const float *K, const float *V, const float *dO, float *dQ,
-                      float *dK, float *dV, int M, int N, int d) {
+extern "C" void solve(const float *Q, const float *K, const float *V,
+                      const float *dO, float *dQ, float *dK, float *dV, int M,
+                      int N, int d) {
   sycl::queue q{sycl::property::queue::in_order()};
   float *P = sycl::malloc_device<float>(static_cast<long>(M) * N, q);
   float *dS = sycl::malloc_device<float>(static_cast<long>(M) * N, q);
   const float scale = 1.0f / sycl::sqrt(static_cast<float>(d));
 
   q.submit([&](sycl::handler &h) {
-    sycl::local_accessor<float, 1> max_scratch(sycl::range<1>(kWorkGroupSize), h);
-    sycl::local_accessor<double, 1> sum_scratch(sycl::range<1>(kWorkGroupSize), h);
-    h.parallel_for(
-        sycl::nd_range<1>(sycl::range<1>(M * kWorkGroupSize),
-                          sycl::range<1>(kWorkGroupSize)),
-        AttentionBackwardRowsKernel{max_scratch, sum_scratch, Q, K, V, dO, P, dS, N, d,
-                                    scale});
+    sycl::local_accessor<float, 1> max_scratch(sycl::range<1>(kWorkGroupSize),
+                                               h);
+    sycl::local_accessor<double, 1> sum_scratch(sycl::range<1>(kWorkGroupSize),
+                                                h);
+    h.parallel_for(sycl::nd_range<1>(sycl::range<1>(M * kWorkGroupSize),
+                                     sycl::range<1>(kWorkGroupSize)),
+                   AttentionBackwardRowsKernel{max_scratch, sum_scratch, Q, K,
+                                               V, dO, P, dS, N, d, scale});
   });
 
   q.parallel_for(sycl::range<1>(static_cast<long>(M) * d),

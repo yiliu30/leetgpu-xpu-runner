@@ -28,8 +28,9 @@ extern "C" void solve(const float *X, const float *S, float *Y, int M, int N,
   const int total = M * N;
   const int scaleCols = (N + TILE_SIZE - 1) / TILE_SIZE;
   if (total > 0) {
-    q.parallel_for(sycl::range<1>(total),
-                   WeightDequantizationKernel{X, S, Y, M, N, TILE_SIZE, scaleCols});
+    q.parallel_for(
+        sycl::range<1>(total),
+        WeightDequantizationKernel{X, S, Y, M, N, TILE_SIZE, scaleCols});
   }
   q.wait();
 }

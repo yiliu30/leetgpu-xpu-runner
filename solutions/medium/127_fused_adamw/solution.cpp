@@ -35,13 +35,17 @@ struct AdamWKernel {
 
 } // namespace
 
-extern "C" void solve(float *params, const float *grad, float *m, float *v, int N, float lr,
-                      float beta1, float beta2, float eps, float weight_decay, int t) {
+extern "C" void solve(float *params, const float *grad, float *m, float *v,
+                      int N, float lr, float beta1, float beta2, float eps,
+                      float weight_decay, int t) {
   sycl::queue q{sycl::property::queue::in_order()};
-  const double bc1 = 1.0 - std::pow(static_cast<double>(beta1), static_cast<double>(t));
-  const double bc2 = 1.0 - std::pow(static_cast<double>(beta2), static_cast<double>(t));
+  const double bc1 =
+      1.0 - std::pow(static_cast<double>(beta1), static_cast<double>(t));
+  const double bc2 =
+      1.0 - std::pow(static_cast<double>(beta2), static_cast<double>(t));
   q.parallel_for(sycl::range<1>(N),
-                 AdamWKernel{params, grad, m, v, N, lr, beta1, beta2, eps, weight_decay,
-                             static_cast<float>(bc1), static_cast<float>(bc2)});
+                 AdamWKernel{params, grad, m, v, N, lr, beta1, beta2, eps,
+                             weight_decay, static_cast<float>(bc1),
+                             static_cast<float>(bc2)});
   q.wait();
 }

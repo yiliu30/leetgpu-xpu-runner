@@ -14,7 +14,8 @@ struct CountTokensKernel {
     const int token = tokens[linear];
     if (token >= 0) {
       int *count = counts + static_cast<size_t>(row) * V + token;
-      sycl::atomic_ref<int, sycl::memory_order::relaxed, sycl::memory_scope::device,
+      sycl::atomic_ref<int, sycl::memory_order::relaxed,
+                       sycl::memory_scope::device,
                        sycl::access::address_space::global_space>
           atomic_count(*count);
       atomic_count.fetch_add(1);
@@ -57,9 +58,11 @@ struct ApplyPenaltiesKernel {
 
 } // namespace
 
-extern "C" void solve(const float *logits, const int *prompt_tokens, const int *output_tokens,
-                      const float *presence_penalty, const float *frequency_penalty,
-                      const float *repetition_penalty, float *output, int B, int V, int P, int G) {
+extern "C" void solve(const float *logits, const int *prompt_tokens,
+                      const int *output_tokens, const float *presence_penalty,
+                      const float *frequency_penalty,
+                      const float *repetition_penalty, float *output, int B,
+                      int V, int P, int G) {
   sycl::queue q{sycl::property::queue::in_order()};
   const size_t count_size = static_cast<size_t>(B) * V;
   int *prompt_counts = sycl::malloc_device<int>(count_size, q);
@@ -71,8 +74,9 @@ extern "C" void solve(const float *logits, const int *prompt_tokens, const int *
   q.parallel_for(sycl::range<1>(static_cast<size_t>(B) * G),
                  CountTokensKernel{output_tokens, output_counts, V, G});
   q.parallel_for(sycl::range<1>(count_size),
-                 ApplyPenaltiesKernel{logits, prompt_counts, output_counts, presence_penalty,
-                                      frequency_penalty, repetition_penalty, output, V});
+                 ApplyPenaltiesKernel{logits, prompt_counts, output_counts,
+                                      presence_penalty, frequency_penalty,
+                                      repetition_penalty, output, V});
   q.wait();
   sycl::free(prompt_counts, q);
   sycl::free(output_counts, q);

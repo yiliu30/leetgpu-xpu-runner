@@ -64,11 +64,13 @@ struct VarlenAttentionKernel {
 
 } // namespace
 
-extern "C" void solve(const float *Q, const float *K, const float *V, const int *cu_seqlens,
-                      float *output, int T, int d, int S) {
+extern "C" void solve(const float *Q, const float *K, const float *V,
+                      const int *cu_seqlens, float *output, int T, int d,
+                      int S) {
   sycl::queue q{sycl::property::queue::in_order()};
   const float scale = 1.0f / sycl::sqrt(static_cast<float>(d));
-  q.parallel_for(sycl::range<1>(T),
-                 VarlenAttentionKernel{Q, K, V, cu_seqlens, output, T, d, S, scale});
+  q.parallel_for(
+      sycl::range<1>(T),
+      VarlenAttentionKernel{Q, K, V, cu_seqlens, output, T, d, S, scale});
   q.wait();
 }

@@ -60,8 +60,7 @@ struct LogisticRegressionKernel {
             sum += X[static_cast<std::size_t>(row) * nFeatures + i] *
                    X[static_cast<std::size_t>(row) * nFeatures + j] * w[row];
           }
-          hessian[i * nFeatures + j] =
-              sum + ((i == j) ? l2Reg : 0.0f);
+          hessian[i * nFeatures + j] = sum + ((i == j) ? l2Reg : 0.0f);
         }
       }
 
@@ -69,14 +68,12 @@ struct LogisticRegressionKernel {
         for (int j = 0; j <= i; ++j) {
           float sum = hessian[i * nFeatures + j];
           for (int k = 0; k < j; ++k) {
-            sum -= hessian[i * nFeatures + k] *
-                   hessian[j * nFeatures + k];
+            sum -= hessian[i * nFeatures + k] * hessian[j * nFeatures + k];
           }
           if (i == j) {
             hessian[i * nFeatures + i] = sycl::sqrt(sum);
           } else {
-            hessian[i * nFeatures + j] =
-                sum / hessian[j * nFeatures + j];
+            hessian[i * nFeatures + j] = sum / hessian[j * nFeatures + j];
           }
         }
       }
@@ -110,11 +107,11 @@ struct LogisticRegressionKernel {
 
 } // namespace
 
-extern "C" void solve(const float *X, const float *y, float *beta, int n_samples,
-                      int n_features) {
+extern "C" void solve(const float *X, const float *y, float *beta,
+                      int n_samples, int n_features) {
   sycl::queue q{sycl::property::queue::in_order()};
-  const int scratchSize = 3 * n_samples + 2 * n_features +
-                          n_features * n_features;
+  const int scratchSize =
+      3 * n_samples + 2 * n_features + n_features * n_features;
   float *work = sycl::malloc_device<float>(scratchSize, q);
   q.single_task(
       LogisticRegressionKernel{X, y, beta, work, n_samples, n_features});

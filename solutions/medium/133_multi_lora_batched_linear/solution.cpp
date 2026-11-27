@@ -56,7 +56,8 @@ struct LoraOutputKernel {
       const float *Br = B + static_cast<size_t>(adapter) * R * N;
       float adapter_value = 0.0f;
       for (int rank = 0; rank < R; ++rank) {
-        adapter_value += shrink_row[rank] * Br[static_cast<size_t>(rank) * N + col];
+        adapter_value +=
+            shrink_row[rank] * Br[static_cast<size_t>(rank) * N + col];
       }
       value += scale * adapter_value;
     }
@@ -66,15 +67,16 @@ struct LoraOutputKernel {
 
 } // namespace
 
-extern "C" void solve(const float *x, const float *W, const float *A, const float *B,
-                      const int *adapter_ids, float *y, int T, int K, int N, int R, int L,
-                      float scale) {
+extern "C" void solve(const float *x, const float *W, const float *A,
+                      const float *B, const int *adapter_ids, float *y, int T,
+                      int K, int N, int R, int L, float scale) {
   sycl::queue q{sycl::property::queue::in_order()};
   float *shrink = sycl::malloc_device<float>(static_cast<size_t>(T) * R, q);
   q.parallel_for(sycl::range<1>(static_cast<size_t>(T) * R),
                  LoraShrinkKernel{x, A, adapter_ids, shrink, K, R});
-  q.parallel_for(sycl::range<1>(static_cast<size_t>(T) * N),
-                 LoraOutputKernel{x, W, B, adapter_ids, shrink, y, K, N, R, scale});
+  q.parallel_for(
+      sycl::range<1>(static_cast<size_t>(T) * N),
+      LoraOutputKernel{x, W, B, adapter_ids, shrink, y, K, N, R, scale});
   q.wait();
   sycl::free(shrink, q);
 }

@@ -82,7 +82,8 @@ struct AdderTransformerKernel {
         float maxScore = -3.402823466e+38F;
         for (int key = 0; key <= pos; ++key) {
           const float score =
-              (qRot0[pos] * kRot0[key] + qRot1[pos] * kRot1[key]) * attentionScale;
+              (qRot0[pos] * kRot0[key] + qRot1[pos] * kRot1[key]) *
+              attentionScale;
           scores[key] = score;
           maxScore = sycl::max(maxScore, score);
         }

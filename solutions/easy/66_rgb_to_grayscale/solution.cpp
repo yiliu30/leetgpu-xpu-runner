@@ -21,7 +21,8 @@ struct RgbToGrayscaleKernel {
 
 } // namespace
 
-extern "C" void solve(const float *input, float *output, int width, int height) {
+extern "C" void solve(const float *input, float *output, int width,
+                      int height) {
   const int totalPixels = width * height;
   if (totalPixels <= 0) {
     return;

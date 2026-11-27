@@ -33,8 +33,8 @@ struct CausalDepthwiseConv1dKernel {
 
 } // namespace
 
-extern "C" void solve(const float *x, const float *weight, const float *bias, float *output, int B,
-                      int L, int D, int K) {
+extern "C" void solve(const float *x, const float *weight, const float *bias,
+                      float *output, int B, int L, int D, int K) {
   sycl::queue q{sycl::property::queue::in_order()};
   q.parallel_for(sycl::range<1>(static_cast<std::size_t>(B) * L * D),
                  CausalDepthwiseConv1dKernel{x, weight, bias, output, L, D, K});

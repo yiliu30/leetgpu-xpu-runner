@@ -48,7 +48,8 @@ struct QkvRopeCacheKernel {
       double sum = 0.0;
       for (int k = 0; k < d_model; ++k) {
         sum += static_cast<double>(x_row[k]) *
-               static_cast<double>(W_qkv[static_cast<long>(k) * out_cols + col_base + j]);
+               static_cast<double>(
+                   W_qkv[static_cast<long>(k) * out_cols + col_base + j]);
       }
       values[j] = static_cast<float>(sum);
     }
@@ -72,14 +73,16 @@ struct QkvRopeCacheKernel {
         }
       } else {
         const int pos_k = positions[b];
-        float *dst = K_cache + ((static_cast<long>(b) * H_kv + head) * S_max + pos_k) * D;
+        float *dst = K_cache +
+                     ((static_cast<long>(b) * H_kv + head) * S_max + pos_k) * D;
         for (int j = 0; j < D; ++j) {
           dst[j] = rotated[j];
         }
       }
     } else {
       const int pos_v = positions[b];
-      float *dst = V_cache + ((static_cast<long>(b) * H_kv + head) * S_max + pos_v) * D;
+      float *dst =
+          V_cache + ((static_cast<long>(b) * H_kv + head) * S_max + pos_v) * D;
       for (int j = 0; j < D; ++j) {
         dst[j] = values[j];
       }
@@ -89,13 +92,15 @@ struct QkvRopeCacheKernel {
 
 } // namespace
 
-extern "C" void solve(const float *x, const float *W_qkv, const float *cos_sin_cache,
-                      const int *positions, float *K_cache, float *V_cache, float *Q_out, int B,
+extern "C" void solve(const float *x, const float *W_qkv,
+                      const float *cos_sin_cache, const int *positions,
+                      float *K_cache, float *V_cache, float *Q_out, int B,
                       int d_model, int H_q, int H_kv, int D, int S_max) {
   sycl::queue q{sycl::property::queue::in_order()};
   const int total_heads = B * (H_q + 2 * H_kv);
   q.parallel_for(sycl::range<1>(total_heads),
-                 QkvRopeCacheKernel{x, W_qkv, cos_sin_cache, positions, K_cache, V_cache, Q_out,
-                                    d_model, H_q, H_kv, D, S_max});
+                 QkvRopeCacheKernel{x, W_qkv, cos_sin_cache, positions, K_cache,
+                                    V_cache, Q_out, d_model, H_q, H_kv, D,
+                                    S_max});
   q.wait();
 }

@@ -31,9 +31,8 @@ struct MoeWeightGradientKernel {
 
 } // namespace
 
-extern "C" void solve(const float *X, const float *dY,
-                      const int *group_offsets, float *dW, int G, int M_total,
-                      int K, int N) {
+extern "C" void solve(const float *X, const float *dY, const int *group_offsets,
+                      float *dW, int G, int M_total, int K, int N) {
   (void)M_total;
   sycl::queue q{sycl::property::queue::in_order()};
   q.parallel_for(sycl::range<1>(static_cast<std::size_t>(G) * K * N),

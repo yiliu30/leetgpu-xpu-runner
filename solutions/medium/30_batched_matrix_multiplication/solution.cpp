@@ -30,8 +30,8 @@ struct BatchedMatMulKernel {
 
 } // namespace
 
-extern "C" void solve(const float *A, const float *B, float *C, int BATCH, int M,
-                      int N, int K) {
+extern "C" void solve(const float *A, const float *B, float *C, int BATCH,
+                      int M, int N, int K) {
   sycl::queue q{sycl::property::queue::in_order()};
   q.parallel_for(sycl::range<1>(static_cast<std::size_t>(BATCH) * M * N),
                  BatchedMatMulKernel{A, B, C, BATCH, M, N, K});

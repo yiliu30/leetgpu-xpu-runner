@@ -31,16 +31,15 @@ struct RmsNormalizeKernel {
     if (i >= n) {
       return;
     }
-    const float rms =
-        sycl::sqrt(sumSquares[0] / static_cast<float>(n) + eps);
+    const float rms = sycl::sqrt(sumSquares[0] / static_cast<float>(n) + eps);
     output[i] = gamma * (input[i] / rms) + beta;
   }
 };
 
 } // namespace
 
-extern "C" void solve(const float *input, float gamma, float beta, float *output,
-                      int N, float eps) {
+extern "C" void solve(const float *input, float gamma, float beta,
+                      float *output, int N, float eps) {
   sycl::queue q{sycl::property::queue::in_order()};
   const int numWorkGroups = (N + WORK_GROUP_SIZE - 1) / WORK_GROUP_SIZE;
   sycl::range<1> workGroupSize(WORK_GROUP_SIZE);

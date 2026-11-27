@@ -28,10 +28,12 @@ struct FusedResidualAddRmsNormKernel {
 
 } // namespace
 
-extern "C" void solve(const float *x, const float *residual, const float *weight, float *out, int N,
-                      int C, float eps) {
+extern "C" void solve(const float *x, const float *residual,
+                      const float *weight, float *out, int N, int C,
+                      float eps) {
   sycl::queue q{sycl::property::queue::in_order()};
-  q.parallel_for(sycl::range<1>(static_cast<std::size_t>(N)),
-                 FusedResidualAddRmsNormKernel{x, residual, weight, out, C, eps});
+  q.parallel_for(
+      sycl::range<1>(static_cast<std::size_t>(N)),
+      FusedResidualAddRmsNormKernel{x, residual, weight, out, C, eps});
   q.wait();
 }

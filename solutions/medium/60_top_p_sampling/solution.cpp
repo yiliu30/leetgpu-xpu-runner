@@ -81,9 +81,9 @@ struct TopPSamplingKernel {
       const int token = order[i];
       const uint32_t bits = pcgHash(seedHash + static_cast<uint32_t>(token));
       const double uniform = (static_cast<double>(bits) + 0.5) / 4294967296.0;
-      const double score =
-          (static_cast<double>(probs[token]) / static_cast<double>(nucleusSum)) /
-          (-sycl::log(uniform));
+      const double score = (static_cast<double>(probs[token]) /
+                            static_cast<double>(nucleusSum)) /
+                           (-sycl::log(uniform));
       if (score > bestScore) {
         bestScore = score;
         bestToken = token;
@@ -102,8 +102,8 @@ extern "C" void solve(const float *logits, const float *p, const int *seed,
     float *probs = sycl::malloc_device<float>(vocab_size, q);
     int *order = sycl::malloc_device<int>(vocab_size, q);
     q.parallel_for(sycl::range<1>(1),
-                   TopPSamplingKernel{logits, p, seed, sampled_token, probs, order,
-                                      vocab_size});
+                   TopPSamplingKernel{logits, p, seed, sampled_token, probs,
+                                      order, vocab_size});
     q.wait();
     sycl::free(order, q);
     sycl::free(probs, q);

@@ -37,7 +37,8 @@ struct AttentionSinksKernel {
     item.barrier(sycl::access::fence_space::local_space);
     for (int stride = kWorkGroupSize / 2; stride > 0; stride >>= 1) {
       if (lid < stride) {
-        max_scratch[lid] = sycl::max(max_scratch[lid], max_scratch[lid + stride]);
+        max_scratch[lid] =
+            sycl::max(max_scratch[lid], max_scratch[lid + stride]);
       }
       item.barrier(sycl::access::fence_space::local_space);
     }
@@ -82,19 +83,22 @@ struct AttentionSinksKernel {
 
 } // namespace
 
-extern "C" void solve(const float *Q, const float *K, const float *V, float *output, int M, int d,
-                      int num_sinks, int window_size) {
+extern "C" void solve(const float *Q, const float *K, const float *V,
+                      float *output, int M, int d, int num_sinks,
+                      int window_size) {
   sycl::queue q{sycl::property::queue::in_order()};
   const float scale = 1.0f / sycl::sqrt(static_cast<float>(d));
   q.submit([&](sycl::handler &h) {
     sycl::local_accessor<float, 1> weights(sycl::range<1>(M), h);
-    sycl::local_accessor<float, 1> max_scratch(sycl::range<1>(kWorkGroupSize), h);
-    sycl::local_accessor<double, 1> sum_scratch(sycl::range<1>(kWorkGroupSize), h);
-    h.parallel_for(
-        sycl::nd_range<1>(sycl::range<1>(M * kWorkGroupSize),
-                          sycl::range<1>(kWorkGroupSize)),
-        AttentionSinksKernel{weights, max_scratch, sum_scratch, Q, K, V, output, d, num_sinks,
-                             window_size, scale});
+    sycl::local_accessor<float, 1> max_scratch(sycl::range<1>(kWorkGroupSize),
+                                               h);
+    sycl::local_accessor<double, 1> sum_scratch(sycl::range<1>(kWorkGroupSize),
+                                                h);
+    h.parallel_for(sycl::nd_range<1>(sycl::range<1>(M * kWorkGroupSize),
+                                     sycl::range<1>(kWorkGroupSize)),
+                   AttentionSinksKernel{weights, max_scratch, sum_scratch, Q, K,
+                                        V, output, d, num_sinks, window_size,
+                                        scale});
   });
   q.wait();
 }

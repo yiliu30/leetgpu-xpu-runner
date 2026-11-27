@@ -26,10 +26,10 @@ struct LayerNormKernel {
     variance /= K;
     const double scale = 1.0 / sycl::sqrt(variance + static_cast<double>(eps));
     for (int col = 0; col < K; ++col) {
-      normalized[base + col] = static_cast<float>(
-          (static_cast<double>(x[base + col]) - mean) * scale *
-              static_cast<double>(gamma[col]) +
-          static_cast<double>(beta[col]));
+      normalized[base + col] =
+          static_cast<float>((static_cast<double>(x[base + col]) - mean) *
+                                 scale * static_cast<double>(gamma[col]) +
+                             static_cast<double>(beta[col]));
     }
   }
 };
@@ -49,7 +49,8 @@ struct LinearGeluKernel {
     const float *xr = normalized + static_cast<size_t>(row) * K;
     double sum = 0.0;
     for (int k = 0; k < K; ++k) {
-      sum += static_cast<double>(xr[k]) * static_cast<double>(W[static_cast<size_t>(k) * N + col]);
+      sum += static_cast<double>(xr[k]) *
+             static_cast<double>(W[static_cast<size_t>(k) * N + col]);
     }
     const double h = sum + static_cast<double>(bias[col]);
     const double gelu = 0.5 * h * (1.0 + sycl::erf(h / sycl::sqrt(2.0)));
@@ -59,11 +60,13 @@ struct LinearGeluKernel {
 
 } // namespace
 
-extern "C" void solve(const float *x, const float *gamma, const float *beta, const float *W,
-                      const float *bias, float *y, int M, int K, int N, float eps) {
+extern "C" void solve(const float *x, const float *gamma, const float *beta,
+                      const float *W, const float *bias, float *y, int M, int K,
+                      int N, float eps) {
   sycl::queue q{sycl::property::queue::in_order()};
   float *normalized = sycl::malloc_device<float>(static_cast<size_t>(M) * K, q);
-  q.parallel_for(sycl::range<1>(M), LayerNormKernel{x, gamma, beta, normalized, K, eps});
+  q.parallel_for(sycl::range<1>(M),
+                 LayerNormKernel{x, gamma, beta, normalized, K, eps});
   q.parallel_for(sycl::range<1>(static_cast<size_t>(M) * N),
                  LinearGeluKernel{normalized, W, bias, y, K, N});
   q.wait();

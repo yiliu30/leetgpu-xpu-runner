@@ -49,10 +49,9 @@ extern "C" void solve(const float *input, float *output, int B, int N) {
   const float inv_sqrt_n = 1.0f / sycl::sqrt(static_cast<float>(N));
   q.submit([&](sycl::handler &h) {
     sycl::local_accessor<float, 1> tile(sycl::range<1>(N), h);
-    h.parallel_for(
-        sycl::nd_range<1>(sycl::range<1>(B * kWorkGroupSize),
-                          sycl::range<1>(kWorkGroupSize)),
-        HadamardKernel{tile, input, output, N, inv_sqrt_n});
+    h.parallel_for(sycl::nd_range<1>(sycl::range<1>(B * kWorkGroupSize),
+                                     sycl::range<1>(kWorkGroupSize)),
+                   HadamardKernel{tile, input, output, N, inv_sqrt_n});
   });
   q.wait();
 }

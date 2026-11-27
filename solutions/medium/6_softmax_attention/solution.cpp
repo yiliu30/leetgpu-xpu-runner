@@ -47,15 +47,16 @@ struct SoftmaxAttentionKernel {
 
 } // namespace
 
-extern "C" void solve(const float *Q, const float *K, const float *V, float *output,
-                      int M, int N, int d) {
+extern "C" void solve(const float *Q, const float *K, const float *V,
+                      float *output, int M, int N, int d) {
   sycl::queue q{sycl::property::queue::in_order()};
   if (M > 0 && N > 0 && d > 0) {
     const float scale = 1.0f / sycl::sqrt(static_cast<float>(d));
     q.submit([&](sycl::handler &h) {
       sycl::local_accessor<float, 1> scores(sycl::range<1>(N), h);
-      h.parallel_for(sycl::nd_range<1>(sycl::range<1>(M), sycl::range<1>(1)),
-                     SoftmaxAttentionKernel{scores, Q, K, V, output, N, d, scale});
+      h.parallel_for(
+          sycl::nd_range<1>(sycl::range<1>(M), sycl::range<1>(1)),
+          SoftmaxAttentionKernel{scores, Q, K, V, output, N, d, scale});
     });
   }
   q.wait();

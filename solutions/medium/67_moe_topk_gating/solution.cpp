@@ -56,12 +56,12 @@ struct MoeTopKGatingKernel {
 
 } // namespace
 
-extern "C" void solve(const float *logits, float *topk_weights, int *topk_indices,
-                      int M, int E, int k) {
+extern "C" void solve(const float *logits, float *topk_weights,
+                      int *topk_indices, int M, int E, int k) {
   sycl::queue q{sycl::property::queue::in_order()};
   if (M > 0 && E > 0 && k > 0) {
-    q.parallel_for(sycl::range<1>(M),
-                   MoeTopKGatingKernel{logits, topk_weights, topk_indices, E, k});
+    q.parallel_for(sycl::range<1>(M), MoeTopKGatingKernel{logits, topk_weights,
+                                                          topk_indices, E, k});
   }
   q.wait();
 }

@@ -93,10 +93,9 @@ extern "C" void solve(const float *A, int N, float *out) {
 
   q.submit([&](sycl::handler &h) {
     sycl::local_accessor<int, 1> scan(sycl::range<1>(WORK_GROUP_SIZE), h);
-    h.parallel_for(
-        sycl::nd_range<1>(sycl::range<1>(globalSize),
-                          sycl::range<1>(WORK_GROUP_SIZE)),
-        StreamCompactionBlockSumsKernel{scan, A, blockOffsets, N});
+    h.parallel_for(sycl::nd_range<1>(sycl::range<1>(globalSize),
+                                     sycl::range<1>(WORK_GROUP_SIZE)),
+                   StreamCompactionBlockSumsKernel{scan, A, blockOffsets, N});
   });
   q.parallel_for(sycl::range<1>(1),
                  StreamCompactionScanBlocksKernel{blockOffsets, numBlocks});

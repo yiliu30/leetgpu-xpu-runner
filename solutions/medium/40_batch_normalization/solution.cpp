@@ -49,8 +49,9 @@ struct BatchNormApplyKernel {
       return;
     }
     const int channel = i % c;
-    output[i] = gamma[channel] * ((input[i] - mean[channel]) * invStd[channel]) +
-                beta[channel];
+    output[i] =
+        gamma[channel] * ((input[i] - mean[channel]) * invStd[channel]) +
+        beta[channel];
   }
 };
 
@@ -69,9 +70,9 @@ extern "C" void solve(const float *input, const float *gamma, const float *beta,
 
   q.parallel_for(sycl::range<1>(statsWorkGroups * WORK_GROUP_SIZE),
                  BatchNormStatsKernel{input, mean, invStd, N, C, eps});
-  q.parallel_for(sycl::range<1>(applyWorkGroups * WORK_GROUP_SIZE),
-                 BatchNormApplyKernel{input, gamma, beta, mean, invStd, output,
-                                      total, C});
+  q.parallel_for(
+      sycl::range<1>(applyWorkGroups * WORK_GROUP_SIZE),
+      BatchNormApplyKernel{input, gamma, beta, mean, invStd, output, total, C});
   q.wait();
 
   sycl::free(mean, q);

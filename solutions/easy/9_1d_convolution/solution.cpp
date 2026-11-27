@@ -23,8 +23,8 @@ struct Convolution1DKernel {
 
 } // namespace
 
-extern "C" void solve(const float *input, const float *kernel, float *output, int input_size,
-                      int kernel_size) {
+extern "C" void solve(const float *input, const float *kernel, float *output,
+                      int input_size, int kernel_size) {
   sycl::queue q{sycl::property::queue::in_order()};
   const int outputSize = input_size - kernel_size + 1;
   constexpr int workGroupSize = 256;
@@ -32,7 +32,7 @@ extern "C" void solve(const float *input, const float *kernel, float *output, in
   sycl::nd_range<1> launchRange(sycl::range<1>(numWorkGroups * workGroupSize),
                                 sycl::range<1>(workGroupSize));
 
-  q.parallel_for(launchRange,
-                 Convolution1DKernel{input, kernel, output, outputSize, kernel_size});
+  q.parallel_for(launchRange, Convolution1DKernel{input, kernel, output,
+                                                  outputSize, kernel_size});
   q.wait();
 }
