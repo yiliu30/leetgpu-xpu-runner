@@ -85,6 +85,11 @@ async function api(path, options = {}) {
     payload = null;
   }
   if (!res.ok) {
+    if (res.status === 404 && !getServiceBase()) {
+      throw new Error(
+        "404 — no Service URL configured. Open “API token” and set it to your runner, e.g. http://localhost:8080"
+      );
+    }
     const detail = payload && (payload.detail || payload.error);
     throw new Error(detail || `${res.status} ${res.statusText}`);
   }
@@ -133,8 +138,16 @@ async function boot() {
     }
   } catch (err) {
     $("#status-dot").classList.add("bad");
-    $("#status-text").textContent = "service unreachable";
-    showBanner(`Cannot reach the runner service: ${err.message}`);
+    $("#status-text").textContent = getServiceBase()
+      ? `service unreachable (${getServiceBase()})`
+      : "no service configured";
+    if (!getServiceBase()) {
+      openTokenDialog(
+        "This page is hosted on GitHub Pages. Open an SSH tunnel to the XPU host, then enter the Service URL (for example http://localhost:8080) and the API token."
+      );
+    } else {
+      showBanner(`Cannot reach the runner service at ${getServiceBase()}: ${err.message}`);
+    }
   }
 
   state.history = JSON.parse(localStorage.getItem("xpu_history") || "[]");
