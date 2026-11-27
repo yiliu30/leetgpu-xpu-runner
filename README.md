@@ -145,8 +145,10 @@ Two pieces with different constraints:
 
 ### GitHub Pages + SSH tunnel
 
+Live UI: **https://yiliu30.github.io/leetgpu-xpu-runner/**
+
 The `pages.yml` workflow publishes `web/` on every push to `main` (enable
-Settings → Pages → Source: GitHub Actions once).
+Settings → Pages → Source: GitHub Actions once; this repo is already set up).
 
 Users then connect the UI to the verifier through a tunnel:
 
