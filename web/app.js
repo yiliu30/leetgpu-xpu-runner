@@ -27,6 +27,19 @@ const el = (tag, cls, text) => {
 function getToken() {
   return localStorage.getItem("xpu_token") || "";
 }
+
+function getServiceBase() {
+  const stored = localStorage.getItem("xpu_service");
+  if (stored) return stored.replace(/\/+$/, "");
+  const config = window.XPU_RUNNER_CONFIG || {};
+  return (config.apiBase || "").replace(/\/+$/, "");
+}
+
+function setServiceBase(value) {
+  const cleaned = (value || "").trim().replace(/\/+$/, "");
+  if (cleaned) localStorage.setItem("xpu_service", cleaned);
+  else localStorage.removeItem("xpu_service");
+}
 function setToken(value) {
   if (value) localStorage.setItem("xpu_token", value);
   else localStorage.removeItem("xpu_token");
@@ -47,6 +60,7 @@ function openTokenDialog(message, retry = false) {
   state.retryAfterToken = retry || state.retryAfterToken;
   if (message) $("#token-message").textContent = message;
   $("#token-input").value = getToken();
+  $("#service-input").value = getServiceBase();
   if (!dialog.open) dialog.showModal();
   $("#token-input").focus();
   $("#token-input").select();
@@ -59,7 +73,7 @@ async function api(path, options = {}) {
   const token = getToken();
   if (token) headers["Authorization"] = `Bearer ${token}`;
   if (options.body) headers["Content-Type"] = "application/json";
-  const res = await fetch(path, Object.assign({}, options, { headers }));
+  const res = await fetch(getServiceBase() + path, Object.assign({}, options, { headers }));
   if (res.status === 401) {
     openTokenDialog("This server requires an API token. Paste it and press Save — the run will retry.", true);
     throw new AuthError("API token required or invalid");
@@ -112,7 +126,7 @@ async function boot() {
     state.authRequired = Boolean(health.auth_required);
     const dot = $("#status-dot");
     dot.classList.add("ok");
-    $("#status-text").textContent = `${health.challenges} challenges · ${health.devices.length} GPU(s)`;
+    $("#status-text").textContent = `${health.challenges} challenges · ${health.devices.length} GPU(s) · ${getServiceBase() || "this host"}`;
     if (state.authRequired && !getToken()) {
       showBanner("This server requires an API token. Click “API token” to enter it.");
       openTokenDialog("This server requires an API token. Paste it and press Save.");
@@ -520,6 +534,7 @@ $("#token-btn").addEventListener("click", () => openTokenDialog("Paste the token
 $("#token-cancel").addEventListener("click", () => $("#token-dialog").close());
 $("#token-form").addEventListener("submit", (event) => {
   event.preventDefault();
+  setServiceBase($("#service-input").value);
   setToken($("#token-input").value.trim());
   $("#token-dialog").close();
   showBanner("");

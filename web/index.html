@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>LeetGPU XPU</title>
-  <link rel="stylesheet" href="/assets/style.css" />
+  <link rel="stylesheet" href="assets/style.css" />
 </head>
 <body>
   <header class="topbar">
@@ -50,6 +50,10 @@
       <p id="token-message" class="muted small">
         Paste the token configured on the runner service.
       </p>
+      <label class="field-label" for="service-input">Service URL</label>
+      <input id="service-input" type="text" autocomplete="off"
+             placeholder="http://localhost:8080 (empty = this page)" />
+      <label class="field-label" for="token-input">API token</label>
       <input id="token-input" type="password" autocomplete="off" placeholder="token" />
       <div class="dialog-actions">
         <button type="button" id="token-cancel" class="ghost">Cancel</button>
@@ -58,6 +62,7 @@
     </form>
   </dialog>
 
-  <script src="/assets/app.js"></script>
+  <script src="config.js"></script>
+  <script src="assets/app.js"></script>
 </body>
 </html>

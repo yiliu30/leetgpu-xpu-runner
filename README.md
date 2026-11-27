@@ -134,6 +134,44 @@ The service also serves a self-contained UI at `http://<host>:8080/` (no CDN, no
 Only challenges that ship a SYCL starter can be run; the rest are listed and marked
 `no SYCL starter`.
 
+## Deploying the UI
+
+Two pieces with different constraints:
+
+- **UI** (`web/`) is static and can be hosted anywhere, including GitHub Pages.
+- **Verifier** (`python -m service`) must run on the XPU host, which may have no
+  outbound internet access.
+
+### GitHub Pages + SSH tunnel
+
+The `pages.yml` workflow publishes `web/` on every push to `main` (enable
+Settings → Pages → Source: GitHub Actions once).
+
+Users then connect the UI to the verifier through a tunnel:
+
+```bash
+ssh -L 8080:<xpu-host>:8080 <user>@<jump-host>
+```
+
+In the UI click **API token**, set **Service URL** to `http://localhost:8080`,
+and paste the token. The setting is stored in `localStorage`.
+
+Why the tunnel is required: the XPU host has no inbound internet, and a browser
+blocks an HTTPS page from calling an HTTP backend (mixed content). `localhost`
+is exempt, so the tunnel gives a working, private path without exposing the GPU.
+For same-host use the Service URL can stay empty and the UI calls the service
+that served it.
+
+Alternative when the service is reachable on the internal network with TLS: set
+`web/config.js` → `window.XPU_RUNNER_CONFIG.apiBase` to that URL before publishing.
+
+### GitHub Actions self-hosted runner
+
+Not usable when the XPU host has no outbound network: a self-hosted runner must
+reach `github.com` over HTTPS. If outbound access is available, a
+`workflow_dispatch` job could grade asynchronously, but remember that it executes
+submitted C++ on the host, so restrict who can trigger it.
+
 ## Limitations
 
 - SYCL submissions only. The reference implementation, test generation, and
