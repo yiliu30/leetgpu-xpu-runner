@@ -47,6 +47,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--rtol", type=float, default=None, help="override relative tolerance")
     parser.add_argument("--icpx", default=None, help="path to icpx")
     parser.add_argument("--json", type=Path, default=None, help="write the result JSON here")
+    parser.add_argument(
+        "--functional-only",
+        action="store_true",
+        help="skip the performance run (correctness gate only)",
+    )
     parser.add_argument("--in-process", action="store_true", help="skip subprocess isolation")
     parser.add_argument("--keep-build", action="store_true", help="keep the compiled library")
     parser.add_argument("--quiet", action="store_true", help="only print the final JSON")
@@ -65,6 +70,7 @@ def build_job(
         "runs": args.runs,
         "warmups": args.warmups,
         "inner_repeats": args.inner_repeats,
+        "functional_only": args.functional_only,
         "timeout": args.timeout,
         "atol": args.atol,
         "rtol": args.rtol,

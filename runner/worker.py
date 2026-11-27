@@ -70,6 +70,9 @@ def run_job(job: Dict[str, Any]) -> GradeResult:
                 }
                 return result
 
+        if job.get("functional_only"):
+            result.status = "success"
+            return result
         if time.perf_counter() > deadline:
             result.error = {"stage": "performance", "message": "wall-clock limit exceeded"}
             result.status = "timeout"
